@@ -1,118 +1,90 @@
 # importing required libraries
-import numpy as np
-import pandas as pd
-import re
+import numpy as np  # for performing matrix operations
+import pandas as pd # for labeling the data and introducing a data frame
+import re 
 
-# # requesting inputs
-# count = int(input("Enter the number of constraints : "))
-# constrains = []
-# variables = set()
-# z = ""
+# required functionalities
+# funtions to convert inequalities to equalities by adding slack and substracing slack variables
+def convertingToEquality(constraintsP,variablesP):  
+    
+    sVariableCount = 0  # count of slack or surplus variables
+    equation = 0        # varible to store altered equation
 
-# # getting constraints as user inputs
-# for i in range (1,count+1):
-
-#     if(i==1):
-#         constrain = str(input("Enter the 1st constrain :"))
-#     elif(i==2):
-#         constrain = str(input("Enter the 2nd constrain :"))
-#     elif(i==3):
-#         constrain = str(input("Enter the 3rd constrain :"))
-#     else:
-#         constrain = str(input(f"Enter the {count}th constrain :"))
-        
-#     constrains.append(constrain)
-
-# # getting the z equation to be optimized
-# z = input(("Enter the z function :"))
-
-#default values 
-dconstrains=["2x1 + 1x2 < 50","2x1 + 5x2 < 100","2x1 + 3x2 < 90"]
-dvariables=set()
-z="4x1 + 10x2"
-table = []
-v =[]
-cj = []
-xb = []
-s=0
-
-print("actual constraints")
-print(dconstrains)
-print(" ")
-
-print("actual z")
-print(z)
-print(" ")
-
-# funtions to convert inequalities to equalities
-def convertingToEquality(constrainsList,variableList):  
-
-    SvariableCount = 0
-    equ = 0
     # adding slack or surplus variables and changing to equality
-    for i,string in enumerate(constrainsList):
-            if(string.find(">")!=-1):
-                SvariableCount +=1;
-                equ = string.find(">")
-                string = string[0:equ-1] + ' + ' + f'-1s{SvariableCount}' + " = " + string[equ+1:len(string)]
-                constrainsList[i]=string
-            elif(string.find("<")!=-1):
-                SvariableCount +=1;
-                equ = string.find("<")
-                string = string[0:equ-1] + ' + ' + f'1s{SvariableCount}' + " = " + string[equ+1:len(string)]
-                constrainsList[i]=string
+    # by iterating through constraintsP and checking for >/</>=/<= on each constraint
+    # and modifing the constrints through constraint addition also using sVariableCount to count and update
+    for i,constraint in enumerate(constraintsP):
+            
+            if(constraint.find(">")!=-1 or constraint.find(">=")!=-1):
+                sVariableCount +=1;
+                equation = constraint.find(">")
+                constraint = constraint[0:equation-1] + ' + ' + f'-1s{sVariableCount}' + " = " + constraint[equation+1:len(constraint)]
+                constraintsP[i]=constraint
 
-    # getting list of all variables
-    for j,string in enumerate(constrainsList):
-        for i, letter in enumerate(string):
+            elif(constraint.find("<")!=-1 or constraint.find("<=")!=-1):
+                sVariableCount +=1;
+                equation = constraint.find("<")
+                constraint = constraint[0:equation-1] + ' + ' + f'1s{sVariableCount}' + " = " + constraint[equation+1:len(constraint)]
+                constraintsP[i]=constraint
+
+    # getting set of all variables
+    for constraint in constraintsP:
+        for i, letter in enumerate(constraint):
             if(letter=="x"):
-                variableList.add(string[i:i+2])
+                variablesP.add(constraint[i:i+2])
             elif(letter=="s"):
-                variableList.add(string[i:i+2])
+                variablesP.add(constraint[i:i+2])
 
-    # sorting variables
-    vList = list(sorted(variableList))
-    variableList = []
-    for i in range(len(vList)-SvariableCount):
-        variableList.append(vList[i+SvariableCount])
+    # sorting variables in the order x1, x2, ...., s1, s2, ....
+    tempVariables = list(sorted(variablesP))
+    variablesModified= []
+    for i in range(len(tempVariables)-sVariableCount):
+        variablesModified.append(tempVariables[i+sVariableCount])
 
-    for i in range(SvariableCount):
-        variableList.append(vList[i])
+    for i in range(sVariableCount):
+        variablesModified.append(tempVariables[i])
     
-    # printing all variables
-    return SvariableCount,variableList
+    # returning sorted list of variables
+    return sVariableCount,variablesModified
 
-# adding 0 as coefficient to the variables
-def completeEquation(constrainsList,variableList):
-    equ = 0
-    # adding variables with zero as coefficients
-    for variable in variableList:
-        for j,string in enumerate(constrainsList):
-                if(string.find(variable) ==-1):
-                    equ = string.find(" = ")
-                    string = string[0:equ] + ' + ' + f'0{variable}' + string[int(equ):int(len(string))]
-                    constrainsList[j]=string
+# completing constraints by adding 0 as coefficient to the variables which are not present
+def completeConstraints(constraintsP,variablesP):
+
+    pos = 0 # position of "=" to add remaining variables
+   
+    for variable in variablesP:
+        for i,constraint in enumerate(constraintsP):
+                
+                if(constraint.find(variable) ==-1):
+
+                    pos = constraint.find(" = ")
+                    constraint = constraint[0:pos] + ' + ' + f'0{variable}' + constraint[int(pos):int(len(constraint))]
+                    constraintsP[i]=constraint
     
-# completing z function
-def completeZ(zValue,variableList):
+# completing the z relation by adding 0 as coefficient to the variables which are not present 
+def completeZ(zValue,variablesP):
 
     # adding variables with zero as coefficients
-    for variable in variableList:
+    for variable in variablesP:
         if(zValue.find(variable) ==-1):
             zValue= zValue + ' + ' + f'0{variable}'
     return zValue
 
-# extracting coefficients                   
-def extract(tableList,constrainsList,variableList):
+# extracting coefficients in the constraints                 
+def extractCoefficients(tableP,constraintsP,variablesP):
     
-    coefficients=[]
-    parts=[]
-    for i in range(len(variableList)):
+    parts=[] # to store the parts of constraint split by "+"
+    for i in range(len(variablesP)):
+
         coefficients=[]
-        for string in constrainsList:
-            parts = string.split('+')
+
+        for constraint in constraintsP:
+
+            parts = constraint.split('+')
             for element in parts:
-                if(element.find(variableList[i]) !=-1):
+
+                if(element.find(variablesP[i]) !=-1):
+
                     if(element.find('-') !=-1):
                         result=re.findall(r"\d+", element)
                         coefficients.append(int('-'+result[0]))
@@ -120,149 +92,194 @@ def extract(tableList,constrainsList,variableList):
                         result=re.findall(r"\d+", element)
                         coefficients.append(int(result[0]))
 
-        tableList.append(coefficients )
+        tableP.append(coefficients )
 
-# extracting z function
-def extractZ(zValue,tableList,variableList):
-    for i in range(len(variableList)):
+# extracting coefficients of variables in z relation
+def extractZ(zValue,tableP,variablesP):
+
+    for i in range(len(variablesP)):
         parts = zValue.split('+')
         for element in parts:
-            if(element.find(variableList[i]) !=-1):
+            if(element.find(variablesP[i]) !=-1):
                 result=re.findall(r"\d+", element)
-                tableList.append(int(result[0]))
+                tableP.append(int(result[0]))
 
-def extractXb(tableList,constrainsList):
-    for i in range(len(constrainsList)):
-        result=re.findall(r"\d+", constrainsList[i])
-        tableList.append(int(result[len(result)-1]))
+# extracting RHS of constraints 
+def extractXb(tableP,constraintsP):
+
+    for i in range(len(constraintsP)):
+        result=re.findall(r"\d+", constraintsP[i])
+        tableP.append(int(result[len(result)-1]))
+
+# implementation of simplex method 
+def simplexMethod(tableP,variablesP,CJ,S):
+
+    # intializing variables
+    columnHead = ["CB","XB"]
+    rowHead = []
+    variable = []
+    zj_cj =[-1]
+    column = 0
+    row = 0
+    count = 0
+    zValue=0
+    solution = {}
+
+    for var in variablesP:
+        columnHead.append(var)
+    
+    for i in range(len(variablesP)-s+1):
+        rowHead.append(variablesP[i+s-1])
+        variable.append(variablesP[i+s-1])
+
+    df = pd.DataFrame(tableP, index = rowHead,columns =columnHead)
+
+    while(min(list(zj_cj))<0):
+        
+        zj_cj =[]
+        zj = []
+        count = count+1
+        print("Iteration No : ",count)
+        print(" ")
+        print(df)
+        print(" ")
+
+        for i in range(tableP.shape[1]-2):
+            value = np.multiply(tableP[:,0],tableP[:,i+2])
+            zj.append(np.sum(value))
+        
+        zj_cj = np.subtract(zj,CJ)
+        column = list(zj_cj).index(min(list(zj_cj)))
+        column = column + 2
+
+        xb_xj = np.divide(tableP[:,1],tableP[:,column])
+
+        row = list(xb_xj).index(min(list(xb_xj)))
 
 
-# convertingToEquality(constrains,variables)
-# completeEquation(constrains,variables)
-# completeZ(z,variables)
+        variable[row] = variablesP[column -2]
+        df = df.rename(index={df.index[row]: variablesP[column -2]})
+        
+        print("zj : ",zj)
+        print(" ")
+        print("zj-cj : ",zj_cj)
+        print(" ")
+        print("xb/xj : ",xb_xj)
+        print(" ")
 
-#testing with default values
-s,v=convertingToEquality(dconstrains,dvariables)
-completeEquation(dconstrains,dvariables)
-z=completeZ(z,dvariables)
-extract(table,dconstrains,v)
+        print("row    : ",row)
+        print("column : ",column)
+        print("key    : ",tableP[row,column])
+        print(" ")
+        print("---------------------------------------------------------------------------------------------- ")
+        print(" ")
+         
+        tableP[row,0]=cj[column-2]
+        tableP[row,1:] = np.divide(tableP[row,1:],tableP[row,column])
+        
+        for i in range(tableP.shape[0]):
+            if(i!=row):
+                tableP[i,1:] = tableP[i,1:] - (tableP[i,column]/tableP[row,column])*tableP[row,1:] 
+
+        for i,v in enumerate(variable): 
+          df.loc[v] = tableP[i]
+
+    print(" ")
+    print("Final Table : ")  
+    
+    print(df)
+    print(" ")
+    
+    # printing solution
+    print("Solution : ")
+    print(" ")
+    for i,var in enumerate(variable):
+        print(var," = ",round(tableP[i,1],4))
+        solution[var] = round(tableP[i,1],4)
+    for var in variablesP:
+        if(var in variable ):
+            chomma = 0
+        else:
+            print(var," = 0")
+            solution[var] = 0
+    
+    for i,var in enumerate(variable):
+        zValue = zValue + solution[var]*CJ[i]
+
+    print(" ")
+    print("Optimum Value of Z : ",zValue)  
+    print(" ") 
+    print("---------------------------------------------------------------------------------------------- ")
+    
+# #default values for testing : uncomment from 212-220 and  comment from 227-247 and
+# constraints=["2x1 + 1x2 < 50","2x1 + 5x2 < 100","2x1 + 3x2 < 90"]
+# z="4x1 + 10x2"
+
+variables=set()
+table = [] # table to take values of constraints
+v =[]    # list of variables v as set defaultVariables can not be modified 
+cj = []  # cj : coefficients of z
+xb = []  # xb : RHS of constraints
+s = 0    # s : no. of slack/surplus variables
+
+print(" ")
+print("------ Solving LPP using Simplex Method ------")
+print(" ")
+
+# requesting inputs
+# getting the z relation to be optimized
+z = input(("Maximize/Minimize : "))
+print(" ")
+
+# getting the number of constraints
+constraintsCount = int(input("Enter the number of constraints : "))
+constraints = []
+print(" ")
+
+# getting constraints as user inputs
+print("Enter constraints of the form : w1x1 + w2x2 + ..... + wnxn ~ w0 where, ~ = >/</=/>=/<=")
+print(" ")
+for i in range (1,constraintsCount+1):
+    if(i==1):
+        constraint = str(input("Enter the 1st constraint : "))
+    elif(i==2):
+        constraint = str(input("Enter the 2nd constraint : "))
+    elif(i==3):
+        constraint = str(input("Enter the 3rd constraint : "))
+    else:
+        constraint = str(input(f"Enter the {constraintsCount}th constraint : "))
+    constraints.append(constraint)       
+print(" ")
+
+# calling functions to test with default values uncomment for testing
+s,v=convertingToEquality(constraints,variables)
+
+completeConstraints(constraints,variables)
+z=completeZ(z,variables)
+
+extractCoefficients(table,constraints,v)
 extractZ(z,cj,v)
-extractXb(xb,dconstrains)
+extractXb(xb,constraints)
 
-print("final z")
-print(z)
+print("Modified LPP : Maximize/Minimize : ",z)
 print(" ")
-
-print("final constraints")
-print(dconstrains)
-print(" ")
-
-print("cj")
-print(cj)
-print(" ")
-
-print("table")
-print(table)
-print(" ")
-
-print("variables")
-print(v)
-print(" ")
-
-print("final xb")
-print(xb)
+print("subject to :")
+for constraint in constraints:
+    print(constraint)
 print(" ")
 
 temp1 = np.array(table)
 temp2= temp1.transpose()
 
-l=[]
+initialCB=[]
 for i in range(s):
-    l.append(float(0))
+    initialCB.append(float(0))
 
-workingTable = np.concatenate((np.array(xb)[:, np.newaxis],temp2), axis=1)
-Table = np.concatenate((np.array(l)[:, np.newaxis], workingTable), axis=1)
-
-
-print("Final Table : ")
-print(Table)
-print(" ")
+temp3 = np.concatenate((np.array(xb)[:, np.newaxis],temp2), axis=1)
+Table = np.concatenate((np.array(initialCB)[:, np.newaxis], temp3), axis=1)
 
 
-def simplexMethod(T,V,C):
-
-    # intializing variables
-    columnHead = ["CB","XB","x1","x2","s1","s2","s3"]
-    rowHead = ["s1","s2","s3"]
-    variable = ["s1","s2","s3"]
-    zj_cj =[-1]
-    column = 0
-    row = 0
-    df = pd.DataFrame(T, index = rowHead,columns =columnHead)
-
-    while(min(list(zj_cj))<0):
-        zj_cj =[]
-        zj = []
-
-        print("calculating zj")
-        for i in range(T.shape[1]-2):
-            print(T[:,0],T[:,i+2])
-            print(" ")
-            value = np.multiply(T[:,0],T[:,i+2])
-            zj.append(np.sum(value))
-        
-        print("zj : ",end="")
-        print(zj)
-        print(" ")
-
-        zj_cj = np.subtract(zj,C)
-        column = list(zj_cj).index(min(list(zj_cj)))
-        column = column + 2
-
-        xb_xj = np.divide(T[:,1],T[:,column])
-
-        row = list(xb_xj).index(min(list(xb_xj)))
-
-
-        variable[row] = V[column -2]
-        df = df.rename(index={df.index[row]: V[column -2]})
-
-        print("zj_cj : ",zj_cj)
-        print(" ")
-        print("xb_xj",xb_xj)
-        print(" ")
-
-        print("row  : ",row)
-        print("column : ",column)
-        print("key : ",Table[row,column])
-        print(" ")
-        
-        print("Making key value 1")
-        T[row,0]=cj[column-2]
-        T[row,1:] = np.divide(T[row,1:],T[row,column])
-        print(T)
-        print(" ")
-
-        print("Making column values to 0 ")
-        for i in range(T.shape[0]):
-            if(i!=row):
-                T[i,1:] = T[i,1:] - (T[i,column]/T[row,column])*T[row,1:] 
-
-        for i,v in enumerate(variable): 
-          df.loc[v] = T[i]    
-        print(df)
-        print(" ")
-
-def printResult(T,V,C):
-    R =[]
-    for i in range(len(C)):
-        for value in T[:,1]:
-            if(value==i):
-                R.append(value)
-    
-
-
-simplexMethod(Table,v,cj)
+simplexMethod(Table,v,cj,s)
 
 
 
