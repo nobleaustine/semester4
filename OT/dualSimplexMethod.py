@@ -3,6 +3,7 @@ import numpy as np  # for performing matrix operations
 import pandas as pd # for labeling the data and introducing a data frame
 import re 
 
+
 # required functionalities
 # funtions to convert inequalities to equalities by adding slack and substracing slack variables
 def convertingToEquality(constraintsP,variablesP):  
@@ -27,25 +28,6 @@ def convertingToEquality(constraintsP,variablesP):
                 constraint = constraint[0:equation-1] + ' + ' + f'1s{sVariableCount}' + " = " + constraint[equation+1:len(constraint)]
                 constraintsP[i]=constraint
 
-    # getting set of all variables
-    for constraint in constraintsP:
-        for i, letter in enumerate(constraint):
-            if(letter=="x"):
-                variablesP.add(constraint[i:i+2])
-            elif(letter=="s"):
-                variablesP.add(constraint[i:i+2])
-
-    # sorting variables in the order x1, x2, ...., s1, s2, ....
-    tempVariables = list(sorted(variablesP))
-    variablesModified= []
-    for i in range(len(tempVariables)-sVariableCount):
-        variablesModified.append(tempVariables[i+sVariableCount])
-
-    for i in range(sVariableCount):
-        variablesModified.append(tempVariables[i])
-    
-    # returning sorted list of variables
-    return sVariableCount,variablesModified
 
 # completing constraints by adding 0 as coefficient to the variables which are not present
 def completeConstraints(constraintsP,variablesP):
@@ -101,18 +83,18 @@ def extractZ(zValue,tableP,variablesP):
         parts = zValue.split('+')
         for element in parts:
             if(element.find(variablesP[i]) !=-1):
-                result=re.findall(r"\d+", element)
-                tableP.append(int(result[0]))
+                result=re.findall(r"[-]?\d+[.]\d+|[-]?\d+", element)
+                tableP.append(float(result[0]))
 
 # extracting RHS of constraints 
 def extractXb(tableP,constraintsP):
 
     for i in range(len(constraintsP)):
-        result=re.findall(r"\d+", constraintsP[i])
+        result=re.findall(r"[-]?\d+[.]\d+|[-]?\d+", constraintsP[i])
         tableP.append(int(result[len(result)-1]))
 
 # implementation of simplex method 
-def simplexMethod(tableP,variablesP,CJ,S):
+def dualSimplexMethod(tableP,variablesP,CJ,s):
 
     # intializing variables
     columnHead = ["CB","XB"]
@@ -123,21 +105,26 @@ def simplexMethod(tableP,variablesP,CJ,S):
     row = 0
     count = 0
     zValue=0
+    dual= min(list(tableP[:,1]))
     solution = {}
 
     for var in variablesP:
         columnHead.append(var)
-    
-    for i in range(len(variablesP)-s+1):
-        rowHead.append(variablesP[i+s-1])
-        variable.append(variablesP[i+s-1])
+    # print(columnHead)
+
+    for i in range(len(variablesP)-s):
+        rowHead.append(variablesP[i+s])
+        variable.append(variablesP[i+s])
+  
 
     df = pd.DataFrame(tableP, index = rowHead,columns =columnHead)
 
-    while(min(list(zj_cj))<0):
+    while(min(list(zj_cj))<0 or dual<0):
         
+        row = list(tableP[:,1]).index(dual)
         zj_cj =[]
         zj = []
+        zj_rj = []
         count = count+1
         print("Iteration No : ",count)
         print(" ")
@@ -149,13 +136,20 @@ def simplexMethod(tableP,variablesP,CJ,S):
             zj.append(np.sum(value))
         
         zj_cj = np.subtract(zj,CJ)
-        column = list(zj_cj).index(min(list(zj_cj)))
-        column = column + 2
+        # column = list(zj_cj).index(min(list(zj_cj)))
+        # column = column + 2
+        for i in range(2,len(list(tableP[row,:]))):
+            if(tableP[row,i]<0):
+                # print(zj_cj[i-2],tableP[row,i])
+                zj_rj.append(zj_cj[i-2]/tableP[row,i])
+            else:
+                zj_rj.append(1)
 
-        xb_xj = np.divide(tableP[:,1],tableP[:,column])
-
-        row = list(xb_xj).index(min(list(xb_xj)))
-
+        simple = 0       
+        for var in zj_rj:
+            if(var<simple and var!=1):
+              column = list(zj_rj).index(var)
+              column = column + 2
 
         variable[row] = variablesP[column -2]
         df = df.rename(index={df.index[row]: variablesP[column -2]})
@@ -164,7 +158,7 @@ def simplexMethod(tableP,variablesP,CJ,S):
         print(" ")
         print("zj-cj : ",zj_cj)
         print(" ")
-        print("xb/xj : ",xb_xj)
+        print("zj-cj/rj : ",zj_rj)
         print(" ")
 
         print("row    : ",row)
@@ -183,6 +177,9 @@ def simplexMethod(tableP,variablesP,CJ,S):
 
         for i,v in enumerate(variable): 
           df.loc[v] = tableP[i]
+        
+        dual = min(list(tableP[:,1]))
+        print(dual)
 
     print(" ")
     print("Final Table : ")  
@@ -190,6 +187,8 @@ def simplexMethod(tableP,variablesP,CJ,S):
     print(df)
     print(" ")
     
+    row = min(list(tableP[:,1]))
+
     # printing solution
     print("Solution : ")
     print(" ")
@@ -212,8 +211,8 @@ def simplexMethod(tableP,variablesP,CJ,S):
     print("---------------------------------------------------------------------------------------------- ")
     
 #default values for testing : uncomment from 212-220 and  comment from 227-247 and
-constraints=["2x1 + 1x2 < 50","2x1 + 5x2 < 100","2x1 + 3x2 < 90"]
-z="4x1 + 10x2"
+constraints=["-1x1 + -1x2 < -1","-2x1 + -3x2 < -2"]
+z="-3x1 + -1x2"
 
 variables=set()
 table = [] # table to take values of constraints
@@ -226,7 +225,7 @@ print(" ")
 print("------ Solving LPP using Simplex Method ------")
 print(" ")
 
-# requesting inputs
+{# requesting inputs
 # getting the z relation to be optimized
 # z = input(("Maximize/Minimize : "))
 # print(" ")
@@ -250,6 +249,7 @@ print(" ")
 #         constraint = str(input(f"Enter the {constraintsCount}th constraint : "))
 #     constraints.append(constraint)       
 # print(" ")
+}
 
 # calling functions to test with default values uncomment for testing
 s,v=convertingToEquality(constraints,variables)
@@ -279,16 +279,7 @@ temp3 = np.concatenate((np.array(xb)[:, np.newaxis],temp2), axis=1)
 Table = np.concatenate((np.array(initialCB)[:, np.newaxis], temp3), axis=1)
 
 
-simplexMethod(Table,v,cj,s)
-
-
-
-
-
-
-
-
-                
+dualSimplexMethod(Table,v,cj,s)
 
 
 
