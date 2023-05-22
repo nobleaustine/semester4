@@ -1,7 +1,7 @@
 # importing required libraries
 import numpy as np  # for performing matrix operations
 import pandas as pd # for labeling the data and introducing a data frame
-import re 
+import re           # regular expressions for manipulating strings
 
 # required functionalities
 # funtions to convert inequalities to equalities by adding slack and substracing slack variables
