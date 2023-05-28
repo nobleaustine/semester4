@@ -9,18 +9,26 @@
 # 0 2 2 1
 # 4 6 8 6
 # 6 8 10
+def to_superscript(text):
+    superscript_chars = {
+        '0': '⁰',
+        '1': '¹',
+        '2': '²',
+        '3': '³',
+        '4': '⁴',
+        '5': '⁵',
+        '6': '⁶',
+        '7': '⁷',
+        '8': '⁸',
+        '9': '⁹',
+        '[': '⁽',
+        ']': '⁾',
+        '|': '‖',
+        '_': '₍₎'
+    }
 
-l = [1 ,3 ,4 ,1]
-print(l,l.index(min(l)))
+    superscript_text = ''.join(superscript_chars.get(char, char) for char in text)
+    return superscript_text
 
-
-a = [1,1,2,3,0,0,0]
-A_min = min(a)
-
-A_min_indices = [index1 for index1, element1 in enumerate(a) if element1 == A_min]
-
-if(len(A_min_indices)==1):
-    print(a.index(A_min))
-else:
-    print(A_min_indices)
-    print(a.index(A_min))
+# Example usage
+print(to_superscript("x^2 + y[3]|4_5"))
