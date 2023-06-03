@@ -9,26 +9,22 @@
 # 0 2 2 1
 # 4 6 8 6
 # 6 8 10
-def to_superscript(text):
-    superscript_chars = {
-        '0': '⁰',
-        '1': '¹',
-        '2': '²',
-        '3': '³',
-        '4': '⁴',
-        '5': '⁵',
-        '6': '⁶',
-        '7': '⁷',
-        '8': '⁸',
-        '9': '⁹',
-        '[': '⁽',
-        ']': '⁾',
-        '|': '‖',
-        '_': '₍₎'
-    }
+from tabulate import tabulate
 
-    superscript_text = ''.join(superscript_chars.get(char, char) for char in text)
-    return superscript_text
+def merge_cells(table, row, col_start, col_end):
+    for i in range(col_start, col_end + 1):
+        table[row][i] = None
 
-# Example usage
-print(to_superscript("x^2 + y[3]|4_5"))
+table = [
+    ["Name", "Age", "Country"],
+    ["John (merged)", 25, "USA"],
+    ["Alice", 32, "Canada"],
+    ["Mark", 28, "Australia"]
+]
+
+# Merge cells in the second row (John's information)
+merge_cells(table, 1, 0, 1)
+
+# Generate the table with merged cells
+table_str = tabulate(table, headers="firstrow", tablefmt="grid")
+print(table_str)

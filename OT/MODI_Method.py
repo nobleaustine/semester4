@@ -1,114 +1,134 @@
 # required libraries
-from tabulate import tabulate   #to tabulate data
-import numpy as np
+from tabulate import tabulate   # tabulate data into tables
+import numpy as np              # perform matrix calc
+
+RED = '\033[38;2;225;0;0m'
+END = '\033[0m'
+superscript_chars = {'0': '⁰','1': '¹','2': '²','3': '³','4': '⁴','5': '⁵','6': '⁶','7': '⁷','8': '⁸', '9': '⁹','[': '⁽',']': '⁾',}
+GREEN = "\u001b[32m"
+
+U             = {}
+V             = {}
+ui_vj_table   = []
+d_table       = []
 
 # default table for test running
-display_table = []
+# cost_table = [z for z in [[19,30,50,10],[70,30,40,60],[40,8,70,20]]]
+# supplies = [x for x in [7,9,18]]
+# demands    = [y for y in [5,8,7,14]]
+# ans_table  = np.zeros((3,4),dtype=int)
 
-capacities    = []
-demands       = []
-cost_table    = []
-no_origins    = 3
-no_destinations = 4
+# -------------------------- LEAST COST METHOD ------------------------------------
+def get_user_inputs():
 
-capacities = [x for x in [7,9,18]]
-demands    = [y for y in [5,8,7,14]]
-cost_table = [z for z in [[19,30,50,10],[70,30,40,60],[40,8,70,20]]]
- 
+    print(" ")
+    print("-----------------------------------------------------------------")
+    print(" ")
+    print("User Inputs :")
+    print(" ")
 
-# cost_table.append([1,2,3,4])
-# cost_table.append([4,3,2,0])
-# cost_table.append([0,2,2,1])
-# print(" ")
-# print("----------------------------------------------------------------- ")
-# print(" ")
-# print("User Inputs :")
-# print(" ")
-
-# no_origins = int(input("Enter the number of origins/sources   : "))
-# no_destinations = int(input("Enter the number of destinations      : "))
-# print(" ")
-
-ans_table  = np.zeros((no_origins,no_destinations),dtype=int) 
-
-# print("Enter the cost of transportation in the")
-# print("increasing order of destinations label like,")
-# print("D0, D1, D3, .... for each origin, O1, O2, O3, ...")
-# print(" ")
-# for i in range(no_origins):
-#     input_row  = [int(x) for x in input(f'          O{i} : ').split()]
-#     cost_table.append(input_row)
-# print(" ")
-
-# print("Enter the demand of each destination in the")
-# print("increasing order of the destinations label  : ",end=" ")
-# demands = [int(x) for x in input().split()]
-# print(" ")
-
-# print("Enter the capacity of each origin in the")
-# print("increasing order of the origin label        : ",end=" ")
-# capacities = [int(x) for x in input().split()]
-# print(" ")
-# print("----------------------------------------------------------------- ")
-print(" ")
-
-def create_display_table(cost_table,ans_table,demands,capacities,display_table):
-
-    length  = len(cost_table[0])
-    breadth = len(cost_table)
-
-    for row in range(breadth):
-        insert_row = ["["+ str(ans_table[row][col]) +","+ str(cost_table[row][col]) +"]" for col in range(length)]
-        insert_row = [f'O{row}'] + insert_row + [str(capacities[row])]
-        display_table.append(insert_row)
-    insert_row = [str(value) for value in demands]
-    insert_row = ["DEMANDS"] + insert_row + ["-"]
-    display_table.append(insert_row)
-    
-    head = [f"D{col}" for col in range(length)]
-    head = ["O\D"] + head + ["CAPACITY"]
-    print("               TRANSPORTATION TABLE")
-    print(tabulate(display_table,headers=head, tablefmt="grid"))
+    no_sources      = int(input("Enter the number of sources      : "))         
+    no_destinations = int(input("Enter the number of destinations : "))
     print(" ")
     
-def finish_or_not(list_check):
-    for element in list_check:
-        if element != 0:
+    ans_table  = np.zeros((no_sources,no_destinations),dtype=int)
+    cost_table      = []
+
+    print("Enter the cost of transportation in the")
+    print("increasing order of destination label like,")
+    print("D1, D2, D3, .... for each source, S1, S2, S3, ...")
+    print(" ")
+    for i in range(no_sources):
+        input_row  = [int(x) for x in input(f'          O{i+1} : ').split()]
+        cost_table.append(input_row)
+    print(" ")
+
+    print("Enter the supply form each origin in ")
+    print("the increasing order of the origin label        : ",end=" ")
+    supplies = [int(x) for x in input().split()]
+    print(" ")
+
+    print("Enter the demand of each destination in ")
+    print("the increasing order of the destinations label  : ",end=" ")
+    demands = [int(x) for x in input().split()]
+    print(" ")
+
+    return cost_table,ans_table,supplies,demands
+
+def create_display_table():
+    
+    display_table = []
+    length  = len(cost_table[0])
+    breadth = len(cost_table)
+    for row in range(breadth):
+        insert_row = [str(cost_table[row][col]) for col in range(length)]
+        insert_row = [f'S{row + 1}'] + insert_row + [str(supplies[row])]
+        display_table.append(insert_row)
+    insert_row = [str(value) for value in demands]
+    insert_row = ["DEMAND"] + insert_row + ["-"]
+    display_table.append(insert_row)
+    
+    head = [f"D{col+1}" for col in range(length)]
+    head = ["S\D"] + head + ["SUPPLY"]
+    print(" ")
+    print("TRANSPORTATION TABLE")
+    print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
+    print(" ")
+    return display_table
+
+def check_supply_or_demand_exsist():
+
+    for supply in supplies:
+        if supply != 0:
+            return True
+    for demand in demands:
+        if demand !=0:
             return True
     return False
 
-def color_and_show_table(cost_table,ans_table,demands,capacities,display_table,row_or_column,index,other_part):
-    length   = len(cost_table[0])
-    breadth  = len(cost_table)
-    updated_row = []
+def color_and_show_table(row_or_column,index,index_comp):
+
+    col_count   = len(cost_table[0])
+    row_count  = len(cost_table)
+    
     if row_or_column == 'row':
-        
-        updated_row = ['\033[32m'+ "["+ str(ans_table[index][col]) +","+ str(cost_table[index][col]) +"]" + '\033[0m' for col in range(length)]
-        display_table[index] = [display_table[index][0]] + updated_row + ['\033[32m'+ str(capacities[index]) + '\033[0m']
-        display_table[breadth][other_part +1] = str(demands[other_part]) 
-        
+        for col in range(col_count):
+            if(demands[col] != 0 or col == index_comp):
+                if(col == index_comp):
+                    key_cell = ''.join(superscript_chars.get(char, char) for char in ("["+str(ans_table[index][col])+"]"))
+                    display_table[index][col+1] = RED + key_cell + str(cost_table[index][col]) + END
+                else:
+                    display_table[index][col+1] = RED + str(cost_table[index][col]) + END
 
+        display_table[index][col_count + 1] =  RED + str(supplies[index]) + END 
+        display_table[row_count][index_comp +1] = str(demands[index_comp])
     else:
-        for i in range(breadth):
-            display_table[i][index+1] = '\033[32m'+ "["+ str(ans_table[i][index]) +","+ str(cost_table[i][index]) +"]" + '\033[0m' 
-        display_table[breadth][index+1] = '\033[32m'+ str(demands[index]) + '\033[0m'
-        display_table[other_part][length+1] = str(capacities[other_part])
+        for row in range(row_count):
+            if(supplies[row] != 0 or row == index_comp):
+                if(row == index_comp):
+                    key_cell = ''.join(superscript_chars.get(char, char) for char in ("["+str(ans_table[row][index])+"]"))
+                    display_table[row][index+1] = RED + key_cell + str(cost_table[row][index]) + END
+                else:
+                    display_table[row][index+1] = RED + str(cost_table[row][index]) + END
+        display_table[row_count][index+1] = RED + str(demands[index]) + END
+        display_table[index_comp][col_count+1] = str(supplies[index_comp])
 
-    head = [f"D{col}" for col in range(length)]
-    head = ["O\D"] + head + ["CAPACITY"]
-    print(tabulate(display_table,headers=head, tablefmt="grid"))
+    head = [f"D{col + 1}" for col in range(col_count)]
+    head = ["S\D"] + head + ["SUPPLY"]
+    print(tabulate(display_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
 
-def least_cost_method(cost_table,ans_table,demands,capacities,display_table):
+def least_cost_method():
 
-
+    print("----------------------- LEAST COST METHOD -----------------------")
+    print(" ")
     # length   = len(cost_table[0])
     # breadth  = len(cost_table)
     check = True
     row_or_column =""
     count = 0
     index = 0
-    other_part = 0
+    index_comp = 0
 
     while(check == True):
 
@@ -118,49 +138,50 @@ def least_cost_method(cost_table,ans_table,demands,capacities,display_table):
         minValue = 999999
         for i,row in enumerate(cost_table):
             for j, cost in enumerate(row):
-                if(cost<minValue and capacities[i] !=0 and demands[j]!=0):
+                if(cost<minValue and supplies[i] !=0 and demands[j]!=0):
                     r = i
                     c = j
                     minValue = cost
-        if(demands[c]<capacities[r]):
+        if(demands[c]<supplies[r]):
             ans_table[r][c] = demands[c]
-            capacities[r] = capacities[r] - demands[c]
+            supplies[r] = supplies[r] - demands[c]
             demands[c] = 0
             row_or_column = "col"
             index = c 
-            other_part=r
+            index_comp=r
         else :
-            ans_table[r][c] = capacities[r]
-            demands[c] = demands[c] - capacities[r]
-            capacities[r] = 0
+            ans_table[r][c] = supplies[r]
+            demands[c] = demands[c] - supplies[r]
+            supplies[r] = 0
             row_or_column = "row"
             index = r
-            other_part=c
+            index_comp=c
 
-        capacity_check = finish_or_not(capacities)
-        demand_check   = finish_or_not(demands)
+        check = check_supply_or_demand_exsist()
 
-        if(capacity_check or demand_check):
-            check = True
-        else:
-            check = False
-        print("Iteration No. : ",count,f'| Minimum Value T({r+1},{c+1}) : {minValue}', )
-        color_and_show_table(cost_table,ans_table,demands,capacities,display_table,row_or_column,index,other_part)
+        print("Iteration No.: ",count,f'   min_value: T[{r+1},{c+1}]: {minValue}', )
+        color_and_show_table(row_or_column,index,index_comp)
 
-def show_cost(cost_table,ans_table):
-    sum = 0
+def calc_and_display_cost():
+    total_cost = 0
     for r,row in enumerate(cost_table):
          for c,value in enumerate(row):
-             sum = sum + value*ans_table[r][c]
-    print("Transportation Cost : ",sum)
+             total_cost = total_cost + value*ans_table[r][c]
+    print("Total Transportation Cost : ",total_cost)
 
-def calculate_ui_vi(cost_table,ans_table):
+#----------------------------------calculation in modi----------------------------
+    
+def calculate_ui_vj():
+
     # initializing variables
     row_count = len(ans_table)       # count of rows and columns of ans_table
     col_count = len(ans_table[0])
 
-    U = {}                           # dictionaries to store ui and vj values calculated  
-    V = {}                           # from cost_table with basic variables in ans_table
+    global U                           # dictionaries to store ui and vj values calculated  
+    global V 
+
+    U.clear()
+    V.clear()                          # from cost_table with basic variables in ans_table
    
     U['u0'] = 0   # setting intial value u0 = 0 in dictionary U to calculate all ui and vj values
                   # also adding row index 0 of "u0" to row_indices_for_vj_calc
@@ -202,12 +223,46 @@ def calculate_ui_vi(cost_table,ans_table):
 
     # uncomment to view completed V and U
     # print(U,V)
-    return U,V
 
-def display_ui_vj_table(cost_table,ans_table,ui_vj_table,V,U):
+def calc_d_table():
+    
+    d_row   = []
+    global d_table 
 
-    superscript_chars = {'0': '⁰','1': '¹','2': '²','3': '³','4': '⁴','5': '⁵',
-                         '6': '⁶','7': '⁷','8': '⁸', '9': '⁹','[': '⁽',']': '⁾',}
+    d_table.clear()
+    row_count = len(ans_table)
+
+    for row in range(row_count):
+        d_row = []
+        for col,value in enumerate(ans_table[row]):
+            if(value == 0):
+                d_row.append(cost_table[row][col] -(U[f'u{row}'] + V[f'v{col}']))
+                
+            else:
+                d_row.append(0)
+        d_table.append(d_row)
+    
+def calc_d_min_value():
+
+    global d_table
+
+    min_value = 0
+    row       = 0
+    col       = 0
+    for r in range(len(d_table)):
+        for c in range(len(d_table[0])):
+            if(d_table[r][c]<min_value):
+                min_value = d_table[r][c]
+                row = r
+                col = c
+    
+    return min_value,row,col
+
+#-------------------------------------display in modi----------------------------
+
+def display_ui_vj_table():
+
+    
     ui_vj_table = []
     col_count   = len(ans_table[0])
     row_count   = len(ans_table)
@@ -237,21 +292,10 @@ def display_ui_vj_table(cost_table,ans_table,ui_vj_table,V,U):
     head = [f"D{col}" for col in range(col_count)]
     head = ["O\D"] + head + ["ui"]
     print(tabulate(ui_vj_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
-    
-def calc_d_table(d_table,V,U,ans_table,cost_table):
 
-    row_count = len(ans_table)
-    for row in range(row_count):
-        d_row = []
-        for col,value in enumerate(ans_table[row]):
-            if(value == 0):
-                d_row.append(cost_table[row][col] -(U[f'u{row}'] + V[f'v{col}']))
-                
-            else:
-                d_row.append(0)
-        d_table.append(d_row)
+def display_d_table():
 
-def print_d_table(d_table):
+    global d_table
 
     col_count   = len(d_table[0])
     row_count   = len(d_table)
@@ -266,30 +310,19 @@ def print_d_table(d_table):
     
     head = [f"D{col}" for col in range(col_count)]
     head = ["O\D"] + head
-    print(tabulate(d_table,headers=head, tablefmt="grid"))
+    print(tabulate(d_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
     
-def calc_d_minValue(d_table):
+def find_path_col(start,path):
 
-    min_value = 0
-    row       = 0
-    col       = 0
-    for r in range(len(d_table)):
-        for c in range(len(d_table[0])):
-            if(d_table[r][c]<min_value):
-                min_value = d_table[r][c]
-                row = r
-                col = c
-    
-    return min_value,row,col
+    global ans_table
 
-def find_path_col(start,ans_table,path):
     last = path[len(path)-1]
     if(start != last):
         for row in range(len(ans_table)):
             if(ans_table[row,last[1]] != 0 and row != last[0]):
                 path.append([row,last[1]])
                 # print(path)
-                find_path_row(start,ans_table,path)
+                find_path_row(start,path)
                 last = path[len(path)-1]
                 if(start == last):
                     return
@@ -297,14 +330,16 @@ def find_path_col(start,ans_table,path):
     else:
         return
     
-def find_path_row(start,ans_table,path):
+def find_path_row(start,path):
+
+    global ans_table
     last = path[len(path)-1]
     if(start != last):
         for col,value in enumerate(ans_table[last[0]]):
             if(value !=0 and col != last[1]):
                 path.append([last[0],col])
                 # print(path)
-                find_path_col(start,ans_table,path)
+                find_path_col(start,path)
                 last = path[len(path)-1]
                 if(start == last):
                     return
@@ -312,7 +347,9 @@ def find_path_row(start,ans_table,path):
     else:
         return 
 
-def start_path_find(start,ans_table,path):
+def start_path_search(start,path):
+
+
     start_row    = ans_table[start[0]]
     start_column = [ans_table[row][start[1]] for row in range(len(ans_table)) ]
     ans_table[start[0]][start[1]] = 1
@@ -322,7 +359,7 @@ def start_path_find(start,ans_table,path):
         if(value != 0 and col != start[1]):
             path.append([start[0],col])
             # print(path)
-            find_path_col(start,ans_table,path)
+            find_path_col(start,path)
             last = path[len(path)-1]
             if(start == last):
                 return
@@ -333,29 +370,27 @@ def start_path_find(start,ans_table,path):
             if(value != 0 and row != start[0]):
                 path.append([row,start[1]])
                 # print(path)
-                find_path_row(start,ans_table,path)
+                find_path_row(start,path)
                 last = path[len(path)-1]
                 if(start == last):
                     return
                 else:
                     path.pop(len(path)-1)
 
-def new_allocations_print(ans_table,path):
+def display_new_allocations(path):
     
     length = len(path)
     col_count   = len(ans_table[0])
     row_count   = len(ans_table)
-    superscript_chars = {'0': '⁰','1': '¹','2': '²','3': '³','4': '⁴','5': '⁵',
-                         '6': '⁶','7': '⁷','8': '⁸', '9': '⁹','[': '⁽',']': '⁾',}
+    
     insert_row  = []
     view_table  = []
 
     head = [f"D{col}" for col in range(col_count)]
-    head = ["O\D"] + head 
+    head = ["O\D"] + head #+ ["SUPPLY"]
 
     negative_values = [ans_table[path[i][0]][path[i][1]] for i in range(1,length,2)]
     min_value_neg_label = min(negative_values)
-    # print(min_value_neg_label,negative_values)
     ans_table[path[0][0]][path[0][1]] = 0
 
     for i,dim in enumerate(path):
@@ -374,24 +409,28 @@ def new_allocations_print(ans_table,path):
             else:
                 insert_row.append(str(cost_table[row][col]))
 
-        insert_row = [f'O{row}'] + insert_row 
+        insert_row = [f'O{row}'] + insert_row #+ [str(final_table_supplies[row])]
         view_table.append(insert_row)
         insert_row = []
     
     for i,dim in enumerate(path):
         if(i%2 == 0):
-            view_table[dim[0]][dim[1]+1] = "\u001b[32m" + view_table[dim[0]][dim[1]+1] + '\033[0m'
+            view_table[dim[0]][dim[1]+1] = GREEN + view_table[dim[0]][dim[1]+1] + END
         else:
-            view_table[dim[0]][dim[1]+1] = "\u001b[31m" + view_table[dim[0]][dim[1]+1] + '\033[0m'
+            view_table[dim[0]][dim[1]+1] = RED + view_table[dim[0]][dim[1]+1] + END
     
-    print("Transportation Table Adding value ",min_value_neg_label)
+    # insert_row = [str(value) for value in final_table_demands]
+    # insert_row = ["DEMANDS"] + insert_row + ["-"]
+    # view_table.append(insert_row)
+    
+    print("Allocation Modification   value:",min_value_neg_label)
     print(tabulate(view_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
 
-def final_table(cost_table,ans_table,demands,capacities,display_table):
-    
-    superscript_chars = {'0': '⁰','1': '¹','2': '²','3': '³','4': '⁴','5': '⁵',
-                         '6': '⁶','7': '⁷','8': '⁸', '9': '⁹','[': '⁽',']': '⁾',}
+def display_final_table():
+     
+    global display_table
+    display_table.clear()
     col_count  = len(cost_table[0])
     row_count  = len(cost_table)
     insert_row = []
@@ -405,70 +444,82 @@ def final_table(cost_table,ans_table,demands,capacities,display_table):
                 insert_row.append(value + str(cost_table[row][col]))
             else:
                 insert_row.append(str(cost_table[row][col]))
-        insert_row = [f'O{row}'] + insert_row + [str(capacities[row])]
+        insert_row = [f'O{row}'] + insert_row + [str(final_table_supplies[row])]
         display_table.append(insert_row)
 
-    insert_row = [str(value) for value in demands]
+    insert_row = [str(value) for value in final_table_demands]
     insert_row = ["DEMANDS"] + insert_row + ["-"]
     display_table.append(insert_row)
     
     head = [f"D{col}" for col in range(col_count)]
     head = ["O\D"] + head + ["CAPACITY"]
-    print("            FINAL TRANSPORTATION TABLE")
+    print("FINAL TRANSPORTATION TABLE")
     print(tabulate(display_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
 
-def MODI_METHOD(cost_table,ans_table):
-    d_table       = []
-    ui_vj_table   = []
-    U             = {}
-    V             = {}
-    min_value      = -1
-    row           = 0
-    col           = 0
-    count         = 0
+def modi_method():
+    
+    
+    calculate_ui_vj()
+    calc_d_table()
+    min_value,row,col = calc_d_min_value()
+    count     =  0
+
     print(" ")
-    print("                 MODI METHOD")
+    print("-------------------------- MODI METHOD --------------------------")
     print(" ")
     while(min_value<0):
-        d_table       = []
-        ui_vj_table   = []
-        U             = {}
-        V             = {}
-        count += 1
-        U,V = calculate_ui_vi(cost_table,ans_table)
-        calc_d_table(d_table,V,U,ans_table,cost_table)
-        min_value,row,col = calc_d_minValue(d_table)
         
-        if(min_value<0):
-            print("Iteration No. : ",count)
-            print(" ")
-            print("Ui-Vj_Table")
-            display_ui_vj_table(cost_table,ans_table,ui_vj_table,V,U)
-            print(" ")
-            print("D_Table")
-            print("min_value: d_table("+str(row)+","+str(col) + "):",min_value)
-            print_d_table(d_table)
-            print(" ")
-            start = [row,col]
-            path = [[row,col]]
+        count += 1
+        
+        print("Iteration No.: ",count)
+        print(" ")
+        print("ui-vj Table")
+        display_ui_vj_table()
+        print(" ")
 
-            start_path_find(start,ans_table,path)
-            path.pop(len(path)-1)
-            new_allocations_print(ans_table,path)
-            print(" ")
-        else:
-            capacities = [x for x in [7,9,18]]
-            demands    = [y for y in [5,8,7,14]]
-            display_table = []
-            final_table(cost_table,ans_table,demands,capacities,display_table)
-            show_cost(cost_table,ans_table)
+        print("d_Table","   min_value: T["+str(row)+","+str(col) + "]:",min_value)
+        display_d_table()
+        print(" ")
+        
+        start = [row,col]
+        path = [[row,col]]
 
-# calling functions           
-create_display_table(cost_table,ans_table,demands,capacities,display_table)
-least_cost_method(cost_table,ans_table,demands,capacities,display_table)
-show_cost(cost_table,ans_table)
-MODI_METHOD(cost_table,ans_table)
+        start_path_search(start,path)
+        path.pop(len(path)-1)
+
+        display_new_allocations(path)
+        print(" ")
+        calc_and_display_cost()
+        print(" ")
+        
+        calculate_ui_vj()
+        calc_d_table()
+        min_value,row,col = calc_d_min_value()
+    
+
+        
+    display_final_table()
+    print("Least ",end='')
+    calc_and_display_cost()
+    print(" ")
+    print("-----------------------------------------------------------------")
+
+
+# calling functions     
+cost_table,ans_table,supplies,demands = get_user_inputs()
+display_table = create_display_table()
+print("-----------------------------------------------------------------")
+
+final_table_supplies = [supply for supply in supplies]
+final_table_demands = [demand for demand in demands]
+
+least_cost_method()
+calc_and_display_cost()
+print(" ")
+print("-----------------------------------------------------------------")
+modi_method()
+
 
 
 
