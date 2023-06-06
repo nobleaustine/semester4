@@ -425,7 +425,6 @@ def display_new_allocations(path):
     
     print("Allocation Modification   value:",min_value_neg_label)
     print(tabulate(view_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
-    print(" ")
 
 def display_final_table():
      
@@ -472,9 +471,7 @@ def modi_method():
         
         count += 1
         
-        print("Iteration No.: ",count)
-        print(" ")
-        print("ui-vj Table")
+        print("Iteration No.: ",count,"   ui-vj Table")
         display_ui_vj_table()
         print(" ")
 
@@ -489,7 +486,6 @@ def modi_method():
         path.pop(len(path)-1)
 
         display_new_allocations(path)
-        print(" ")
         calc_and_display_cost()
         print(" ")
         
