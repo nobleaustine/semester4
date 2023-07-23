@@ -9,10 +9,10 @@ superscript_chars = {'0': '⁰','1': '¹','2': '²','3': '³','4': '⁴','5': '�
 
 
 # default table for test running
-# cost_table = [z for z in [[19,30,50,10],[70,30,40,60],[40,8,70,20]]]
-# supplies = [x for x in [7,9,18]]
-# demands    = [y for y in [5,8,7,14]]
-# ans_table  = np.zeros((3,4),dtype=int)
+cost_table = [z for z in [[19,30,50,10],[70,30,40,60],[40,8,70,20]]]
+supplies = [x for x in [7,9,18]]
+demands    = [y for y in [5,8,7,14]]
+ans_table  = np.zeros((3,4),dtype=int)
  
 def get_user_inputs():
 
@@ -54,24 +54,32 @@ def get_user_inputs():
 
 def create_display_table():
     
+    # intializing transportation table and its dimensions as display_table and length*breadth
     display_table = []
     length  = len(cost_table[0])
     breadth = len(cost_table)
 
+    # looping through cost_table and creating rows (insert_row) of transportation table as
+    # S(row count) | cost(1) | cost(2) | ..... | cost(length) | supply(row count)
     for row in range(breadth):
         insert_row = [str(cost_table[row][col]) for col in range(length)]
-        insert_row = [f'O{row + 1}'] + insert_row + [str(supplies[row])]
+        insert_row = [f'S{row + 1}'] + insert_row + [str(supplies[row])]
         display_table.append(insert_row)
+
+    # adding final row of demands for each destination
     insert_row = [str(value) for value in demands]
     insert_row = ["DEMANDS"] + insert_row + ["-"]
     display_table.append(insert_row)
     
+    # header row of the form "S\D" | D(1) | D(2) | ..... | D(length) | "SUPPLY"
     head = [f"D{col+1}" for col in range(length)]
-    head = ["O\D"] + head + ["CAPACITY"]
+    head = ["S\D"] + head + ["SUPPLY"]
+
+    # displaying and returning the transportation table
     print("               TRANSPORTATION TABLE")
     print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
-    return display_table
+    return display_table,head
 
 def check_supply_or_demand_exsist():
 
@@ -167,9 +175,9 @@ def calc_and_display_cost():
     print("Total Transportation Cost : ",total_cost)
 
 # calling functions 
-         
-cost_table,ans_table,supplies,demands = get_user_inputs()
-display_table = create_display_table()
+# comment to use default values   
+# cost_table,ans_table,supplies,demands = get_user_inputs()
+display_table,head = create_display_table()
 least_cost_method()
 calc_and_display_cost()
 

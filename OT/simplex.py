@@ -2,6 +2,7 @@
 import numpy as np  # for performing matrix operations
 import pandas as pd # for labeling the data and introducing a data frame
 import re           # regular expressions for manipulating strings
+from tabulate import tabulate 
 
 # required functionalities
 # funtions to convert inequalities to equalities by adding slack and substracing slack variables
@@ -141,7 +142,7 @@ def simplexMethod(tableP,variablesP,CJ,S):
         count = count+1
         print("Iteration No : ",count)
         print(" ")
-        print(df)
+        # print(tabulate(df,tablefmt="grid",stralign="right", numalign="right"))
         print(" ")
 
         for i in range(tableP.shape[1]-2):
@@ -188,6 +189,7 @@ def simplexMethod(tableP,variablesP,CJ,S):
     print("Final Table : ")  
     
     print(df)
+    # print(tabulate(df,tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
     
     # printing solution
@@ -212,8 +214,8 @@ def simplexMethod(tableP,variablesP,CJ,S):
     print("---------------------------------------------------------------------------------------------- ")
     
 #default values for testing : uncomment from 212-220 and  comment from 227-247 and
-constraints=["2x1 + 1x2 < 50","2x1 + 5x2 < 100","2x1 + 3x2 < 90"]
-z="4x1 + 10x2"
+# constraints=["2x1 + 1x2 < 50","2x1 + 5x2 < 100","2x1 + 3x2 < 90"]
+# z="4x1 + 10x2"
 
 variables=set()
 table = [] # table to take values of constraints
@@ -228,28 +230,28 @@ print(" ")
 
 # requesting inputs
 # getting the z relation to be optimized
-# z = input(("Maximize/Minimize : "))
-# print(" ")
+z = input(("Maximize/Minimize : "))
+print(" ")
 
-# # getting the number of constraints
-# constraintsCount = int(input("Enter the number of constraints : "))
-# constraints = []
-# print(" ")
+# getting the number of constraints
+constraintsCount = int(input("Enter the number of constraints : "))
+constraints = []
+print(" ")
 
-# # getting constraints as user inputs
-# print("Enter constraints of the form : w1x1 + w2x2 + ..... + wnxn ~ w0 where, ~ = >/</=/>=/<=")
-# print(" ")
-# for i in range (1,constraintsCount+1):
-#     if(i==1):
-#         constraint = str(input("Enter the 1st constraint : "))
-#     elif(i==2):
-#         constraint = str(input("Enter the 2nd constraint : "))
-#     elif(i==3):
-#         constraint = str(input("Enter the 3rd constraint : "))
-#     else:
-#         constraint = str(input(f"Enter the {constraintsCount}th constraint : "))
-#     constraints.append(constraint)       
-# print(" ")
+# getting constraints as user inputs
+print("Enter constraints of the form : w1x1 + w2x2 + ..... + wnxn ~ w0 where, ~ = >/</=/>=/<=")
+print(" ")
+for i in range (1,constraintsCount+1):
+    if(i==1):
+        constraint = str(input("Enter the 1st constraint : "))
+    elif(i==2):
+        constraint = str(input("Enter the 2nd constraint : "))
+    elif(i==3):
+        constraint = str(input("Enter the 3rd constraint : "))
+    else:
+        constraint = str(input(f"Enter the {constraintsCount}th constraint : "))
+    constraints.append(constraint)       
+print(" ")
 
 # calling functions to test with default values uncomment for testing
 s,v=convertingToEquality(constraints,variables)
