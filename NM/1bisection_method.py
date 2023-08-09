@@ -53,20 +53,27 @@ def intial_range():
     return a,b
 
 # function to perform bisection method
-def bisection_method(e):
-
-    # intial range within which x for f(x) = 0 lies
+def bisection_method():
+  # intial range within which x for f(x) = 0 lies
     global a
     global b
+    count = 0
     
     # intial error and value of the function
     calc_e = 1    
     value  = fofx(a)
     
     # repeat untill error is less than required
-    while calc_e > e :
+    while calc_e != 0 :
 
+        count = count + 1
         midpoint = (a + b)/2
+        midpoint = round(midpoint,rd)
+        print("Iteration No. : ",count)
+        print(" ")
+        print("   a = ",a)
+        print("   x = ",midpoint)
+        print("   b = ",b)
         
         if fofx(midpoint) > 0 :  # updating a and b
             b = midpoint
@@ -74,22 +81,33 @@ def bisection_method(e):
             a = midpoint
 
         calc_e = abs(value - fofx(midpoint)) # calculating error
+        calc_e = round(calc_e,rd)
         value  = fofx(midpoint)              # storing value at this point for error calculation
+        
+        print(" ")
+        print("   error = ",calc_e)
+        print(" ")
         
     return midpoint
 
 # default polynomial for testing f(x) = x^3 + -1x + -1
 # calling required functions
 print(" ")
-print("     ROOTS OF NON-LINEAR EQUATION USING BISECTION METHOD")
-print("  ---------------------------------------------------------")
+print("      ROOTS OF NON-LINEAR EQUATION USING BISECTION METHOD")
+print("   ---------------------------------------------------------")
 print(" ")
 polynomial = str(input("Enter the non-linear equation : "))
-error      = float(input("Enter the degree of error     : "))
+rd      = int(input("Enter the round of parameter  : "))
 print(" ")
 func = function_identifier(polynomial)
 a,b  = intial_range()
-ans  = bisection_method(error)
-print(f'The root of the non-linear equation {polynomial} = 0 is {str(ans)}')
-print(f'The value of the function at the root is {str(fofx(ans))}')
+ans  = bisection_method()
+print('The root of the non-linear equation')
+print(f'          {polynomial} = 0')
+print(f'to a precision of {rd} decimal places is ')
+print("         ",ans)
 print(" ")
+
+
+
+

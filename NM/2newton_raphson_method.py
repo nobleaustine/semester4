@@ -75,43 +75,59 @@ def intial_range():
     return a,b
 
 # function to perform bisection method
-def newton_raphson_method(e):
+def newton_raphson_method():
 
     # intial range within which x for f(x) = 0 lies
     global a
     global b
+    count = 0
     
     # intial error and value of the function
     calc_e = 1    
     value  = fofx(a)
     x      = a
     # repeat untill error is less than required
-    while calc_e > e :
+    while calc_e != 0 :
 
+        count = count + 1
         x = x - fofx(x)/f_ofx(x)
+        x = round(x,rd)
+        print("Iteration No. : ",count)
+        print(" ")
+        print("   a = ",a)
+        print("   x = ",x)
+        print("   b = ",b)
+        
         if fofx(x) > 0 :  # updating a and b
             b = x
         else :
             a = x
 
         calc_e = abs(value - fofx(x)) # calculating error
+        calc_e = round(calc_e,rd)
         value  = fofx(x)              # storing value at this point for error calculation
+        
+        print(" ")
+        print("   error = ",calc_e)
+        print(" ")
         
     return x
 
 # default polynomial for testing f(x) = x^3 + -1x + -1
 # calling required functions
 print(" ")
-print("     ROOTS OF NON-LINEAR EQUATION USING NEWTON RAPHSON METHOD")
-print("  ---------------------------------------------------------")
+print("      ROOTS OF NON-LINEAR EQUATION USING NEWTON RAPHSON METHOD")
+print("   --------------------------------------------------------------")
 print(" ")
 polynomial = str(input("Enter the non-linear equation : "))
-error      = float(input("Enter the degree of error     : "))
+rd      = int(input("Enter the round of parameter  : "))
 print(" ")
 func   = function_identifier(polynomial)
 d_func = calc_derivative()
 a,b  = intial_range()
-ans  = newton_raphson_method(error)
-print(f'The root of the non-linear equation {polynomial} = 0 is {str(ans)}')
-print(f'The value of the function at the root is {str(fofx(ans))}')
+ans  = newton_raphson_method()
+print('The root of the non-linear equation')
+print(f'          {polynomial} = 0')
+print(f'to a precision of {rd} decimal places is ')
+print("         ",ans)
 print(" ")

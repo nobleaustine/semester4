@@ -51,14 +51,7 @@
 # plt.show()
 
 import re
-element = "-3 + 5x + 2x^2 + -1x^3 + 4.5 "
-parts = element.split(' + ')
+element = "3x1 + 4x2 + 3x3 "
+result=re.findall(r'[x]\d+', element)
+print(result)
 
-# r'[a-zA-Z]$'
-
-for e in parts:
-    print(e)
-    m = re.fullmatch(r'^[-+]?\d+(\.\d+)?$',e)
-    result=re.findall(r'-?\d+(?:\.\d+)?', e)
-    k = re.search(r".*[x]$",e)
-    print(result,bool(k),bool(m))

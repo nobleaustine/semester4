@@ -13,48 +13,82 @@ ui_vj_table   = []
 d_table       = []
 
 # default table for test running
-# cost_table = [z for z in [[3,7,6,4],[2,4,3,2],[4,3,8,5]]]
-# supplies = [x for x in [5,2,3]]
-# demands    = [y for y in [3,3,2,2]]
-# ans_table  = np.zeros((3,4),dtype=int)
+
+# cost_table     = [z for z in [[11,13,17,14],[16,18,14,10],[21,24,13,10]]]
+# cost_table_cut = [c for c in cost_table]
+# demands        = [y for y in [200,225,275,250]]
+# supplies       = [x for x in [250,300,400]]
+# ans_table      = np.zeros((3,4),dtype=int)
+# cost_table     = np.array(cost_table)
+
+# cost_table     = [z for z in [[6,1,9,3],[11,5,2,8],[10,12,4,7]]]
+# cost_table_cut = [c for c in cost_table]
+# demands        = [y for y in [85,35,50,45]]
+# supplies       = [x for x in [70,55,90]]
+# ans_table      = np.zeros((3,4),dtype=int)
+
+# cost_table     = [z for z in [[20,18,18,21,19],[21,22,23,20,24],[18,19,21,18,19]]]
+# cost_table_cut = [c for c in cost_table]
+# demands        = [y for y in [60,80,85,105,70]]
+# supplies       = [x for x in [100,125,175]]
+# ans_table      = np.zeros((3,5),dtype=int)
+
+# cost_table     = [z for z in [[16,20,12],[14,8,18],[26,24,16]]]
+# cost_table_cut = [c for c in cost_table]
+# demands        = [y for y in [180,120,150]]
+# supplies       = [x for x in [200,160,90]]
+# ans_table      = np.zeros((3,3),dtype=int)
+# cost_table     = np.array(cost_table)
+
+# atozmath
+# cost_table     = [z for z in [[19,30,50,10],[70,30,40,60],[40,8,70,20]]]
+# cost_table_cut = [c for c in cost_table]
+# demands        = [y for y in [5,8,7,14]]
+# supplies       = [x for x in [7,9,18]]
+# ans_table      = np.zeros((3,4),dtype=int)
+
 
 # -------------------------------- VAM -----------------------------------------
+
 def get_user_inputs():
 
     print(" ")
-    print("----------------------------------------------------------------- ")
+    print("--------------------- TRANSPORTATION PROBLEM ---------------------")
     print(" ")
     print("User Inputs :")
     print(" ")
 
-    no_sources      = int(input("Enter the number of sources      : "))         
-    no_destinations = int(input("Enter the number of destinations : "))
+    # getting number of sources and destinations from user
+    no_sources      = int(input("   Enter the number of sources      : "))         
+    no_destinations = int(input("   Enter the number of destinations : "))
     print(" ")
     
-    ans_table  = np.zeros((no_sources,no_destinations))
-    ans_table = ans_table.tolist()
+    # setting up ans_table with dimensions : no_sources x no_destinations and cost_table
+    ans_table  = np.zeros((no_sources,no_destinations),dtype=int)
     cost_table      = []
 
-    print("Enter the total_costof transportation in the")
-    print("increasing order of destination label like,")
-    print("D1, D2, D3, .... for each origin, O1, O2, O3, ...")
+    # getting cost for transportation from each source to destination from user
+    print("   Enter the cost of transportation in the")
+    print("   increasing order of destination label like,")
+    print("   D1, D2, D3, .... for sources S1, S2, S3, ...")
     print(" ")
+    # taking the values to input_row and adding input row to cost_table
     for i in range(no_sources):
-        input_row  = [int(x) for x in input(f'          S{i+1} : ').split()]
+        input_row  = [int(x) for x in input(f'      S{i+1} : ').split()]
         cost_table.append(input_row)
     print(" ")
     
-    print(cost_table)
-    print("Enter the demand of each destination in the")
-    print("increasing order of the destinations label  : ",end=" ")
+    # taking demands and supply from user
+    print("   Enter the demand of each destination in the")
+    print("   increasing order of the destinations label  : ",end=" ")
     demands = [int(x) for x in input().split()]
     print(" ")
 
-    print("Enter the capacity of each origin in the")
-    print("increasing order of the origin label        : ",end=" ")
+    print("   Enter the capacity of each origin in the")
+    print("   increasing order of the origin label        : ",end=" ")
     supplies = [int(x) for x in input().split()]
     print(" ")
-    print("----------------------------------------------------------------- ")
+    print("------------------------------------------------------------------")
     print(" ")
     
     return cost_table,ans_table,supplies,demands
@@ -63,7 +97,7 @@ def create_display_table():
 
     global ans_table
     
-    # intializing transportation table and its dimensions as display_table and length*breadth
+    # intializing transportation table and its dimensions as display_table and length x breadth
     display_table = []
     length  = len(cost_table[0])
     breadth = len(cost_table)
@@ -75,24 +109,26 @@ def create_display_table():
         insert_row = [f'S{row + 1}'] + insert_row + [str(supplies[row])]
         display_table.append(insert_row)
 
+    # checking if transportation table is unbalanced : sum(supply) != sum(demand)
     if sum(demands)>sum(supplies) :
-        insert_row = np.zeros(length)
-        insert_row = insert_row.tolist()
+       
+        insert_row = np.zeros(length)        # creating dummy row with all cost values as 0
+        insert_row = insert_row.tolist()     # converting to list
 
-        cost_table.append([x for x in insert_row])
-        ans_table.append([x for x in insert_row])
+        cost_table.append([x for x in insert_row]) # updating to cost_table &
+        ans_table.append([x for x in insert_row])  # ans_table
 
+        # adding dummy row to display_table and updating supplies with reminder
         insert_row = ["Dummy"] + insert_row + [sum(demands) - sum(supplies)]
         display_table.append(insert_row)
         supplies.append(sum(demands) - sum(supplies))
-        print(supplies)
-        
 
         # header row of the form "S\D" | D(1) | D(2) | ..... | D(length) | "SUPPLY"
         head = [f"D{col+1}" for col in range(length)]
-        head = ["S\D"] + head + ["SUPPLY"]
+        head = ["S\D"] + head + ["SUPPLIES"]
 
     elif sum(demands)<sum(supplies) :
+
         for i,row in enumerate(cost_table):
             cost_table[i].append(0)
             ans_table[i].append(0)
@@ -100,8 +136,13 @@ def create_display_table():
 
             display_table[i].append(0)
             head = [f"D{col+1}" for col in range(length)]
-            head = ["S\D"] + head + ["Dummy"] + ["SUPPLY"]
+            head = ["S\D"] + head + ["Dummy"] + ["SUPPLIES"]
     
+    else :
+         # header row of the form "S\D" | D(1) | D(2) | ..... | D(length) | "SUPPLY"
+        head = [f"D{col+1}" for col in range(length)]
+        head = ["S\D"] + head + ["SUPPLIES"]
+
     cost_table_cut = [c for c in cost_table]
 
     # adding final row of demands for each destination
@@ -113,6 +154,7 @@ def create_display_table():
     breadth = len(cost_table)
     
     # displaying the transportation table
+    print(" ")
     print("               TRANSPORTATION TABLE")
     print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
@@ -123,7 +165,6 @@ def create_display_table():
     for i in range(breadth):
         display_table[i].append("0")
     display_table[breadth] = display_table[breadth] + ['-','-']
-    # display_table[breadth-1].append('-')
 
     # adding column penality part
     penality_col  = np.zeros(length)
@@ -131,10 +172,6 @@ def create_display_table():
     penality_col  = ["PENALITY"] + penality_col + ['-','-']
     display_table.append(penality_col)
 
-    # print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
-    # print(tabulate(cost_table,tablefmt="grid",stralign="right", numalign="right"))
-    # print(tabulate(cost_table_cut,tablefmt="grid",stralign="right", numalign="right"))
-    # returning transportation table
     return display_table,cost_table_cut,head
 
 def check_supply_or_demand_exsist():
@@ -152,7 +189,6 @@ def calc_penality():
     global cost_table
     global cost_table_cut
     global display_table
-    global head2
 
     sorted_list = []
     penality_col = []
@@ -165,7 +201,10 @@ def calc_penality():
     # calculate row penality 
     for i,row in enumerate(cost_table_cut):
         if(supplies[i]!=0) :
-            sorted_list = np.sort(row)
+            sorted_list = [x for x in row]
+            # sorted_list = list(set(sorted_list))
+            sorted_list = np.sort(sorted_list)
+            # print(sorted_list)
             if(sorted_list[1] !="z"):
                 display_table[i][length+2]= float(sorted_list[1]) - float(sorted_list[0])
                 penality_row.append(float(sorted_list[1]) - float(sorted_list[0]))
@@ -177,14 +216,16 @@ def calc_penality():
             display_table[i][length+2] = 0
             penality_row.append(0)
 
-
     penality_row = np.array(penality_row)
     cost_table_cut   = np.transpose(cost_table_cut)
 
     # calculate col penality 
     for j,col in enumerate(cost_table_cut):
         if(demands[j]!=0) :
-            sorted_list = np.sort(col)
+            sorted_list = [x for x in col]
+            # sorted_list = list(set(sorted_list))
+            sorted_list = np.sort(sorted_list)
+            # print(sorted_list)
             if(sorted_list[1] !="z"):
                 display_table[breadth+1][j+1]=float(sorted_list[1]) - float(sorted_list[0])
                 penality_col.append(float(sorted_list[1]) - float(sorted_list[0]))
@@ -195,6 +236,7 @@ def calc_penality():
         else :
             display_table[breadth+1][j+1] = 0
             penality_col.append(0)
+
     penality_col = np.array(penality_col)
     cost_table_cut = np.transpose(cost_table_cut)
 
@@ -208,6 +250,7 @@ def calc_penality():
         row = cost_table_cut[col].argmin()
         display_table[breadth+1][col+1] = GREEN + str(display_table[breadth+1][col+1]) + END
         cost_table_cut = np.transpose(cost_table_cut)
+
     return row,col
 
 def color_and_show_table(row_or_column,index,index_comp):
@@ -229,6 +272,9 @@ def color_and_show_table(row_or_column,index,index_comp):
 
         display_table[index][col_count + 1] =  RED + str(supplies[index]) + END 
         display_table[row_count][index_comp +1] = str(demands[index_comp])
+        display_table[index][0] = RED + display_table[index][0] + END
+        
+
     else:
         for row in range(row_count):
             if(supplies[row] != 0 or row == index_comp):
@@ -240,22 +286,25 @@ def color_and_show_table(row_or_column,index,index_comp):
                 cost_table_cut[row][index]  = "z"
         display_table[row_count][index+1] = RED + str(demands[index]) + END
         display_table[index_comp][col_count+1] = str(supplies[index_comp])
+        head[index + 1] = RED + head[index + 1] + END
 
     # head = [f"D{col + 1}" for col in range(col_count)]
     # head = ["O\D"] + head + ["CAPACITY"]
 
     # remove penality
-    data_to_display = [row[:-1] for row in display_table[:-1]]
-    head1 = head[:-1]
-    print(tabulate(data_to_display ,headers=head1, tablefmt="grid",stralign="right", numalign="right"))
+    # data_to_display = [row[:-1] for row in display_table[:-1]]
+    # head1 = head[:-1]
+    # print(tabulate(data_to_display ,headers=head1, tablefmt="grid",stralign="right", numalign="right"))
+    # print(" ")
+
+    
+    print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
     
 def vam():
 
 
-    # length   = len(cost_table[0])
-    # breadth  = len(cost_table)
-    # insert_row = []
+    # intializing local variables
     check = True
     row_or_column =""
     count = 0
@@ -284,9 +333,10 @@ def vam():
 
         check = check_supply_or_demand_exsist()
 
-        print("Iteration No. : ",count,f'        Allocation T({r+1},{c+1}) : {cost_table[r][c]}', )
-        print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
-        print(" ")
+        # print("Iteration No. : ",count,f'        Allocation T({r+1},{c+1}) : {cost_table[r][c]}', )
+        # print(tabulate(display_table,headers=head,tablefmt="grid",stralign="right", numalign="right"))
+        # print(" ")
+        print("   Iteration No. : ",count)
         color_and_show_table(row_or_column,index,index_comp)
 
 def calc_and_display_cost():
@@ -297,12 +347,6 @@ def calc_and_display_cost():
     print("Total Transportation Cost : ",total_cost)
     print(" ")
 
-    total_cost = 0
-    for r,row in enumerate(cost_table):
-         for c,value in enumerate(row):
-             total_cost = total_cost + value*ans_table[r][c]
-    print("Total Transportation Cost : ",total_cost)
-    print(" ")
 #----------------------------------calculation in modi----------------------------
     
 def calculate_ui_vj():
@@ -336,9 +380,8 @@ def calculate_ui_vj():
                     
         row_indices_for_vj_calc = [] # emptying row_indices_for_vj_calc to calc new rows by going through column E column_index_for_ui_calc
         # uncomment for detailed explanation
-        print("column indices for uj alocation : ",column_index_for_ui_calc)
-        print("modified V from the iteration   :",V)
-        print(" ")
+        # print("column indices for uj alocation : ",column_index_for_ui_calc)
+        # print("modified V from the iteration   :",V)
 
         for col in column_index_for_ui_calc:                               # traverse through ans_table[row][col] for col E   
             for row in range (row_count):                                  # column_indices_for_uj_calc with row E (0,row_count) 
@@ -351,12 +394,12 @@ def calculate_ui_vj():
 
         column_index_for_uj_calc = [] # emptying column_index_for_uj_calc to calc new columns by going through row E row_indices_for_vj_calc
         # uncomment for detailed explanation
-        print("row indices for vj alocation  : ",row_indices_for_vj_calc)
-        print("modified U from the iteration :",U)
-        print(" ")
+        # print("row indices for vj alocation  : ",row_indices_for_vj_calc)
+        # print("modified U from the iteration :",U)
+        # print(" ")
 
     # uncomment to view completed V and U
-    print(U,V)
+    # print(U,V)
 
 def calc_d_table():
     
@@ -411,7 +454,7 @@ def display_ui_vj_table():
             else:
                 insert_row.append(str(cost_table[row][col]))
 
-        insert_row = [f'O{row}'] + insert_row + [str(U[f'u{row}'])]
+        insert_row = [f'S{row+1}'] + insert_row + [str(U[f'u{row}'])]
         ui_vj_table.append(insert_row)
         insert_row = []
 
@@ -423,19 +466,18 @@ def display_ui_vj_table():
     insert_row = ["vj"] + insert_row + ["-"]
     ui_vj_table.append(insert_row)
     
-    head = [f"D{col}" for col in range(col_count)]
+    head = [f"D{col+1}" for col in range(col_count)]
     head = ["O\D"] + head + ["ui"]
     print(tabulate(ui_vj_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
 
 def display_d_table():
 
     global d_table
-
     col_count   = len(d_table[0])
     row_count   = len(d_table)
 
     for row in range(row_count):
-        d_table[row].insert(0,f'O{row}')
+        d_table[row].insert(0,f'S{row}')
         for col in range(col_count + 1):
             if(d_table[row][col] == 0):
                 d_table[row][col] = "---"
@@ -458,7 +500,7 @@ def find_path_col(start,path):
                 # print(path)
                 find_path_row(start,path)
                 last = path[len(path)-1]
-                if(start == last):
+                if(start == last and len(path)>4):
                     return
         path.pop(len(path)-1)
     else:
@@ -475,8 +517,9 @@ def find_path_row(start,path):
                 # print(path)
                 find_path_col(start,path)
                 last = path[len(path)-1]
-                if(start == last):
-                    return
+                if(start == last and len(path)>4):
+                    if(start == last):
+                        return
         path.pop(len(path)-1)
     else:
         return 
@@ -495,10 +538,10 @@ def start_path_search(start,path):
             # print(path)
             find_path_col(start,path)
             last = path[len(path)-1]
-            if(start == last):
+            if(start == last and len(path)>4):
                 return
-            else:
-                path.pop(len(path)-1)
+            # else: 
+            #     path.pop(len(path)-1)
 
     for row, value in enumerate(start_column):
             if(value != 0 and row != start[0]):
@@ -508,8 +551,8 @@ def start_path_search(start,path):
                 last = path[len(path)-1]
                 if(start == last):
                     return
-                else:
-                    path.pop(len(path)-1)
+                # else:
+                #     path.pop(len(path)-1)
 
 def display_new_allocations(path):
     
@@ -557,7 +600,7 @@ def display_new_allocations(path):
     # insert_row = ["DEMANDS"] + insert_row + ["-"]
     # view_table.append(insert_row)
     
-    print("Allocation Modification   value:",min_value_neg_label)
+    print("   Allocation Modification      value:",min_value_neg_label)
     print(tabulate(view_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
 
 def display_final_table():
@@ -586,7 +629,7 @@ def display_final_table():
     
     head = [f"D{col}" for col in range(col_count)]
     head = ["O\D"] + head + ["CAPACITY"]
-    print("FINAL TRANSPORTATION TABLE")
+    print("               FINAL TRANSPORTATION TABLE")
     print(tabulate(display_table,headers=head, tablefmt="grid",stralign="right", numalign="right"))
     print(" ")
 
@@ -597,21 +640,16 @@ def modi_method():
     calc_d_table()
     min_value,row,col = calc_d_min_value()
     count     =  0
-    display_ui_vj_table()
-    display_d_table()
-
-    print(" ")
-    print("-------------------------- MODI METHOD --------------------------")
-    print(" ")
+    
     while(min_value<0):
         
         count += 1
         
-        print("Iteration No.: ",count,"   ui-vj Table")
+        print("   Iteration No.: ",count,"      U-V TABLE")
         display_ui_vj_table()
         print(" ")
 
-        print("d_Table","   min_value: T["+str(row)+","+str(col) + "]:",min_value)
+        print("   d TABLE","      min value: T["+str(row)+","+str(col) + "]:",min_value)
         display_d_table()
         print(" ")
         
@@ -622,6 +660,7 @@ def modi_method():
         path.pop(len(path)-1)
 
         display_new_allocations(path)
+        print(" ")
         calc_and_display_cost()
         print(" ")
         
@@ -639,9 +678,12 @@ def modi_method():
 
 
 # calling functions     
-cost_table,cost_table_cut,ans_table,supplies,demands = get_user_inputs()
-display_table,head = create_display_table()
-print("-----------------------------------------------------------------")
+# comment to use default values   
+cost_table,ans_table,supplies,demands = get_user_inputs()
+display_table,cost_table_cut,head = create_display_table()
+
+print("----------------- VOGEL'S APPROXIMATION METHOD ------------------")
+print(" ")
 
 final_table_supplies = [supply for supply in supplies]
 final_table_demands = [demand for demand in demands]
@@ -649,7 +691,8 @@ final_table_demands = [demand for demand in demands]
 vam()
 calc_and_display_cost()
 print(" ")
-print("-----------------------------------------------------------------")
+print("------------------------- MODI'S METHOD -------------------------")  
+print(" ") 
 modi_method()
 
 
