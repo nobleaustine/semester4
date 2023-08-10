@@ -14,29 +14,30 @@ for i in range(r):
 
 A = np.array(A,dtype=float)
 
-def gauss_elimination(A):
+def gauss_jordan(A):
     m,n = A.shape
     n = n - 1
     for i in range(n-1):
         for j in range(i+1,m):
             k = A[j][i]/A[i][i]
             A[j] = A[j] - k*A[i]
+    
 
-def back_propogation(A):
-    m,n = A.shape
-    n = n-1
-    ans = np.zeros(m,dtype=float)
-    for i in range(m-1,-1,-1):
-        sum = 0
-        for j in range(i+1,n,1):
-            sum = sum + ans[j]*A[i][j]
-        ans[i] = (A[i][n] -sum)/A[i][i]
+    for i in range(n-1,0,-1):
+        for j in range(i-1,-1,-1):
+            k = A[j][i]/A[i][i]
+            A[j] = A[j] - k*A[i]
+    
+
+    for i in range(n):
+        k = 1/A[i][i]
+        A[i] = k*A[i]
+    
+    ans = A[:,n]
     return ans
 
 print("matrix :")
 print(A)
-gauss_elimination(A)
-ans =  back_propogation(A)
-
+ans = gauss_jordan(A)
 print("answer : ")
 print(ans)

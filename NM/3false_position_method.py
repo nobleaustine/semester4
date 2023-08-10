@@ -1,57 +1,30 @@
 # required libraries
-import re  
-   
-# required functions
+from sympy import *
 
-# function to extract coefficients and power
-# a0x^0 + a1x^1 + a2x^2 + a3x^3 + .... + aix^i + ... + anx^n where
-# i E (...,-3,-2,-1,0,1,2,3,...)
-def function_identifier(polynomial):
-    
-    result = [] # result to extract ai and i as a list from the string
-    func   = [] # store [ai,i] for all i in polynomial
-
-    components = polynomial.split(" + ")  # splitting as components by " + "
-    for word in components:
-        if bool(re.fullmatch(r'^[-+]?\d+(\.\d+)?$',word)) == True :  # checking if it is just number x^0
-            result=re.findall(r'-?\d+(?:\.\d+)?', word)
-            result = [float(x) for x in result]
-            result.append(float(0))
-        elif bool(re.search(r".*[x]$",word)) == True :               # checking if it is number times  x^1
-            result=re.findall(r'-?\d+(?:\.\d+)?', word)
-            result = [float(x) for x in result]
-            result.append(float(1))
-        else :                                                       # for all other x^i 
-            result=re.findall(r'-?\d+(?:\.\d+)?', word)
-            result = [float(x) for x in result]
-            if len(result) == 1:
-                result.insert(0,1)
-        func.append(result)                                          # adding to list func      
-    return func
-
-# function to calculate the value of the polynomial at a point
-def fofx(x):
-
-    value = 0 # for getting value of function at x
-    for term in func:
-        value = value + term[0]*(x**term[1]) # contribution of each term
-    return value
-
-# function to calculateintial range
 def intial_range():
 
-    number_line = [-3,-2,-1,0,1,2,3]
-    a = fofx(-3) # parameters of range: (a,b)
-    b = 0
-    for x in number_line:
-        if fofx(x) > 0 : # going to right of number line to find fofx(x) > 0
-            b = x
-            break
-        elif fofx(x) < 0 : # else changing the limit of a 
-            a = x
-    return a,b
+  last1 = 0
+  last2 = 0
+  check = False
 
-# function to perform false position method
+  while(check == False):
+
+    if((f(last1) < 0 and f(last1 + 1) > 0) or (f(last1) > 0 and f(last1 + 1) < 0)):
+        a = last1
+        b = last1 + 1
+        check = True
+    else:
+        last1 = last1 + 1
+
+    if((f(last2) < 0 and f(last2 - 1) > 0) or (f(last2) > 0 and f(last2 - 1) < 0)):
+        a = last2 -1
+        b = last2 
+        check = True
+    else:
+        last2 = last2 -1 
+
+  return a,b
+
 def false_position_method():
 
     # intial range within which x for f(x) = 0 lies
@@ -61,13 +34,13 @@ def false_position_method():
     
     # intial error and value of the function
     calc_e = 1    
-    value  = fofx(a)
+    value  = f(a)
     
     # repeat untill error is less than required
     while calc_e != 0 :
 
         count = count + 1
-        pos = (a*fofx(b) - b*fofx(a))/(fofx(b)-fofx(a))
+        pos = (a*f(b) - b*f(a))/(f(b)-f(a))
         pos = round(pos,rd)
         print("Iteration No. : ",count)
         print(" ")
@@ -76,39 +49,31 @@ def false_position_method():
         print("   b = ",b)
 
         
-        if fofx(pos) > 0 :  # updating a and b
+        if f(pos) > 0 :  # updating a and b
             b = pos
         else :
             a = pos
 
-        calc_e = abs(value - fofx(pos)) # calculating error
+        calc_e = abs(value - f(pos)) # calculating error
         calc_e = round(calc_e,rd)
-        value  = fofx(pos)              # storing value at this point for error calculation
+        value  = f(pos)              # storing value at this point for error calculation
         
         print(" ")
         print("   error = ",calc_e)
         print(" ")
         
-    return pos
+    print("ans : ",pos)
 
-# default polynomial for testing f(x) = x^3 + -1x + -1
-# calling required functions 
-print(" ")
-print("      ROOTS OF NON-LINEAR EQUATION USING FALSE POSITION METHOD")
-print("   --------------------------------------------------------------")
-print(" ")
-polynomial = str(input("Enter the non-linear equation : "))
-rd      = int(input("Enter the round of parameter  : "))
-print(" ")
-func = function_identifier(polynomial)
-a,b  = intial_range()
-ans  = false_position_method()
-print('The root of the non-linear equation')
-print(f'          {polynomial} = 0')
-print(f'to a precision of {rd} decimal places is ')
-print("         ",ans)
-print(" ")
+func = str(input("enter function : "))
 
+rd   = int(input("accuracy : "))
+func = "lambda x : " + func
+f = eval(func)
+x = symbols('x')
+f_ = eval("lambda x :"+str(f(x).diff(x)))
+
+a,b = intial_range()
+false_position_method()
 
 
 
