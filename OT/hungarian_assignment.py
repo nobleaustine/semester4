@@ -348,10 +348,6 @@ def hungarian_method():
             print("-----------------------------------------------------")
             print("")
 
-if __name__ == "__main__":
-    substract_min()
-    hungarian_method()
-    
 
 
 
