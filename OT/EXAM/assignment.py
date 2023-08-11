@@ -10,8 +10,9 @@ def substract_min(A):
 
     min_values = np.min(A,axis=0,keepdims=True)
     A = A - min_values
-    
+    print("reduced matrix : ")
     print(A)
+    print(" ")
     return A
 
 def assign(A):
@@ -25,8 +26,10 @@ def assign(A):
                         A[i][k] = -1
                 for l in range(i+1,m):
                     if A[l][j] == 0 :
-                        A[l][j] = -1
+                       A[l][j] = -1
+    print("assigned matrix : ")                   
     print(A)
+    print(" ")
 
 def check_row(ind):
 
@@ -79,17 +82,12 @@ def marking(A):
         if(len(row) != lrow):
             con_or_not = True
 
-    print(row,col)
+    # print(row,col)
     return row,col
 
-def update(A,row,col):
+def update(A,row,col):   
     m,n = A.shape
     min_v = 999
-
-    for i in range(m):
-            for j in range(n):
-                if A[i][j] == -1 :
-                    A[i][j] = 0
 
     for i in range(m):
         for j in range(n):
@@ -103,23 +101,29 @@ def update(A,row,col):
 
             elif (i not in row) and (j in col) :
                 A[i][j] = A[i][j] + min_v
-
+    print("updated matrix :")
     print(A)
+    print(" ")
 
 def hungarian_assignment():
 
     global A
     A = np.array([[18,26,17,11],[13,28,14,26],[38,19,18,15],[19,26,24,10]],dtype=float)
-    
-
-    A = substract_min(A)
     m,n = A.shape
-    assign(A)
-    row,col = marking(A)
-    v = len(col) + m - len(row)
-    if(v<n):
-        update(A,row,col)
-    assign(A)
+    v = 0
+    A = substract_min(A)
+    while(v<n):
+        assign(A)
+        row,col = marking(A)
+        v = len(col) + m - len(row)
+        if(v<n):
+            for i in range(m):
+                for j in range(n):
+                    if A[i][j] == -1 :
+                        A[i][j] = 0
+            update(A,row,col)
+        else: 
+            break
 
 hungarian_assignment()
 
